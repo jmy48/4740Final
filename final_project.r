@@ -1,29 +1,16 @@
 
-df <- read.csv("job_skill_short.csv")
-
 library(NLP)
 library(tm)
 library(SnowballC)
 library(qdap)
 library("fastDummies")
 library(caret)
+library(stringr)
 
-#Company: unused
-#Title: Keywords in job title good predictor for Category. Use TFIDF
-#Category: Response
-#Location: Categorical variable
-#Responsibilities: word embeddings
-#Minimum Qualifications: extract keywords of tools, what kind of degree, years of experience
-#Preferred Qualifications: Same as minimum qualifications
-
-#First try: TF-IDF of each feature. Not very interpretable
-#Second try: word embeddings, neural nets, LSTM responsibilities and qualifications, 
-#experience/tools extraction from qualifications
+df <- read.csv("job_skill_short.csv")
 
 drops <- c("X","Company")
 df <- df[ , !(names(df) %in% drops)]
-# df <- dummy_cols(df, select_columns = c('Location'), remove_first_dummy = FALSE,
-#   remove_most_frequent_dummy = FALSE)
 
 df["Location"] <- as.factor(df[["Location"]])
 df["Category"] <- as.factor(df[["Category"]])
@@ -54,6 +41,14 @@ df$pref_mba <- ifelse(grepl("MBA",df$Preferred.Qualifications),1,0)
 df$pref_phd <-ifelse(grepl("PhD|Ph.D",df$Preferred.Qualifications),1,0)
 df$pref_jd <-ifelse(grepl("JD|J.D.",df$Preferred.Qualifications),1,0)
 
+regexp <- "\\d+\\b(?=\\syears)"
+df$min_years_exp<-as.numeric(str_extract(df$Minimum.Qualifications, regexp))
+df$min_years_exp[is.na(df$min_years_exp)]<-0
+
+regexp2 <- "\\d+\\b(?=\\syears)" 
+df$pref_years_exp<-as.numeric(str_extract(df$Preferred.Qualifications, regexp2))
+df$pref_years_exp[is.na(df$pref_years_exp)]<-0
+
 tfFromFeature <- function(source_df, colname){
     corpus = VCorpus(VectorSource(source_df[[colname]]))
     corpus = tm_map(corpus, stripWhitespace)
@@ -66,14 +61,12 @@ tfFromFeature <- function(source_df, colname){
     colnames(df) <- lapply(colnames(df), function(word){return(paste(colname, "_", word, collapse =""))})
     return(df)
 }
-corpus <- tfFromFeature(df, "Title")
 
 text_features <- c("Title", "Responsibilities", "Minimum.Qualifications", "Preferred.Qualifications")
 df_bow <- df[ , !(names(df) %in% text_features)]
 for (x in text_features){
     df_bow <- cbind(df_bow, tfFromFeature(df, x))
 }
-
 df_bow
 
 set.seed(123)
@@ -88,17 +81,17 @@ params = data.frame(n.trees = c(60,80,100,120,140),
                     interaction.depth = c(3,3,3,3,3), 
                     shrinkage = c(0.1, 0.1, 0.1, 0.1, 0.1),
                     n.minobsinnode = c(10,10,10,10,10))
-gbmFit1 <- train(Category~., data = train, method = "gbm", trControl = fitControl, verbose = FALSE, tuneGrid = params)
+gbmFit1 <- train(Category~., data = train, method = "gbm", trControl = fitControl, tuneGrid = params)
 gbmFit1
 
 m_pls <- train(Category~., data=train, method="widekernelpls", trControl = fitControl,
-               tuneGrid = data.frame(ncomp = c(35,38,41,44,47)), maxit = 1000)
+               tuneGrid = data.frame(ncomp = c(50,55,60,65,70,75,80,85,90)), maxit = 1000)
 m_pls
 
-m_log <- train(Category~., data=train, method="regLogistic", tuneLength = 7, loss = L1, trControl = fitControl)
+m_log <- train(Category~., data=train, method="regLogistic", tuneLength = 10, loss = L1, trControl = fitControl)
 m_log
 
-m_gauss <- train(Category~., data=train, method='gaussprLinear', tuneLength = 5)
+m_gauss <- train(Category~., data=train, method='gaussprLinear')
 m_gauss
 
 categories = levels(df_bow$Category)
@@ -114,4 +107,29 @@ for (i in 1:length(categories)){
     print(ith_model)
 }
 
+logistic_l1 <- train(Category~., data=train, method='regLogistic', 
+                   trControl = fitControl, tuneGrid = data.frame(cost = c(2.0), epsilon = c(.001), loss = c("L1")))
 
+
+
+gbmImp <- varImp(gbmFit1, scale = FALSE)
+gbmImp
+
+svmFit <- train(Category~., data = train, 
+                 method = "svmRadial", 
+                 trControl = fitControl,
+                 preProc = c("center", "scale"),
+                 tuneLength = 8,
+                 metric = "ROC")
+
+logistic_l1$finalModel
+
+coeffs = logistic_l1$finalModel$W
+categories = levels(df_bow$Category)
+selected_vars = setNames(data.frame(matrix(ncol = length(categories), nrow = 1)), categories)
+for (feature in coeffs){
+#    print(feature)
+}
+
+features = colnames(coeffs)
+#logistic_l1$finalModel$obsLevels
