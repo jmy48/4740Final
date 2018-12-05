@@ -1,0 +1,186 @@
+```{r}
+df <- read.csv("job_skill_short.csv")
+
+#Company: unused
+#Title: Keywords in job title good predictor for Category. Use TFIdata.tree
+#Category: Response
+#Location: Categorical variable
+#Minimum Qualifications: extract keywords of tools, what kind of degree, years of experience
+#Preferred Qualifications: Same as minimum qualifications
+
+drops <- c("X","Company")
+data.tree <- df[ , !(names(df) %in% drops)]
+
+data.tree["Location"] <- as.factor(data.tree[["Location"]])
+data.tree["Category"] <- as.factor(data.tree[["Category"]])
+
+#initialize new columns
+
+##Minimum Qualifications
+
+#Major 
+data.tree$min_eng <-0
+data.tree$min_cs <- 0 
+data.tree$min_bus <-0 
+data.tree$min_math <-0 
+data.tree$min_ss <-0
+data.tree$min_design<-0
+
+#Degrees
+data.tree$min_bs <-0
+data.tree$min_ms <- 0 
+data.tree$min_mba <-0 
+data.tree$min_phd <-0 
+data.tree$min_jd <-0
+
+#Hard Skills
+data.tree$min_coding <-0
+data.tree$min_data <-0
+data.tree$min_web <-0
+data.tree$min_languages<-0
+data.tree$min_travel<-0
+
+##Preferred Qualifications
+
+#Major
+data.tree$pref_eng <-0
+data.tree$pref_cs <- 0 
+data.tree$pref_bus <-0 
+data.tree$pref_math <-0 
+data.tree$pref_ss <-0
+data.tree$pref_design <-0
+
+#Degrees
+data.tree$pref_bs <-0
+data.tree$pref_ms <- 0 
+data.tree$pref_mba <-0 
+data.tree$pref_phd <-0 
+data.tree$pref_jd <-0
+
+#Hard Skills
+# data.tree$pref_java <-0
+# data.tree$pref_python <- 0 
+# data.tree$pref_JavaScript <-0 
+# data.tree$pref_Cplus<-0 
+# data.tree$pref_SQL <-0
+# data.tree$pref_Tableau <-0
+# data.tree$pref_CSS <- 0 
+# data.tree$pref_Ruby <-0 
+# data.tree$pref_R<-0 
+# data.tree$pref_HTML <-0
+# data.tree$pref_MATLAB<-0
+# data.tree$pref_Node<-0
+# data.tree$pref_Csharpt<-0
+# data.tree$pref_Go<-0
+data.tree$pref_coding <-0
+data.tree$pref_data <-0
+data.tree$pref_web <-0
+data.tree$pref_languages<-0
+data.tree$pref_travel<-0
+
+##Minimum qualifications columns 
+
+#Majors
+data.tree$min_eng <- ifelse(grepl("Engineering|Computer Science|Operations Research|Information Science", 
+                           data.tree$Minimum.Qualifications), 1, 0)
+data.tree$min_cs <- ifelse(grepl("Computer Science|Information Science|Software Engineering",data.tree$Minimum.Qualifications),1,0)
+data.tree$min_bus <- ifelse(grepl("MBA|Economics|Financial Accounting|Business|Management Information Systems
+                           |Operations Research|Supply Chain|Finance|Hotel Management!Marketing"
+                           ,data.tree$Minimum.Qualifications),1,0)
+data.tree$min_math <-ifelse(grepl("Math|Statistics|Quanitative|Data Science|Econometrics",data.tree$Minimum.Qualifications),1,0)
+data.tree$min_ss <-ifelse(grepl("Social Sciences|Economics|Anthropology|Political Science|Communications|Psychology|
+                         History|English|Literature",data.tree$Minimum.Qualifications),1,0)
+data.tree$min_design<-ifelse(grepl("Design|Art|Fashion",data.tree$Minimum.Qualifications),1,0)
+
+
+#Degrees
+data.tree$min_bs <- ifelse(grepl("BS|BA|Bachelors|Bachelor's", data.tree$Minimum.Qualifications), 1, 0)
+data.tree$min_ms <- ifelse(grepl("MS|MA|MST|Masters|Master's|MFA",data.tree$Minimum.Qualifications),1,0)
+data.tree$min_mba <- ifelse(grepl("MBA",data.tree$Minimum.Qualifications),1,0)
+data.tree$min_phd <-ifelse(grepl("PhD|Ph.D",data.tree$Minimum.Qualifications),1,0)
+data.tree$min_jd <-ifelse(grepl("JD|J.D.",data.tree$Minimum.Qualifications),1,0)
+
+
+#Hard Skills
+data.tree$min_coding <-ifelse(grepl("java|Java|JavaScript|python|Python|C\\+\\+|C|Objective-C|C/C\\+\\+|C#|Go|R|RStudio|MATLAB|NodeJS|NET|Ruby|PHP", data.tree$Minimum.Qualifications), 1, 0)
+data.tree$min_data <-ifelse(grepl("R|RStudio|SQL|Spark SQL|Tableau|SPSS|SAS|querying|database", data.tree$Minimum.Qualifications), 1, 0)
+data.tree$min_web <-ifelse(grepl("JavaScript|HTML|HTML5|CSS|Ruby|PHP", data.tree$Minimum.Qualifications), 1, 0)
+data.tree$min_languages <-ifelse(grepl("Russian|Polish|Turkish|French|German|English|Chinese|Dutch|Swedish|Norwegian|Finnish|European|Mandarin|Cantonese|Arabic|Italian|Romanian|Korean", data.tree$Minimum.Qualifications), 1, 0)
+data.tree$min_travel<-ifelse(grepl("travel", data.tree$Minimum.Qualifications), 1, 0)
+
+## Preferred qualification columns
+
+#Majors
+data.tree$pref_eng <- ifelse(grepl("Engineering|Computer Science|Operations Research|Information Science", 
+                           data.tree$Preferred.Qualifications), 1, 0)
+data.tree$pref_cs <- ifelse(grepl("Computer Science|Information Science|Software Engineering",data.tree$Preferred.Qualifications),1,0)
+data.tree$pref_bus <- ifelse(grepl("MBA|Economics|Financial Accounting|Business|Management Information Systems
+                           |Operations Research|Supply Chain|Finance|Hotel Management!Marketing"
+                           ,data.tree$Preferred.Qualifications),1,0)
+data.tree$pref_math <-ifelse(grepl("Math|Statistics|Quanitative|Data Science|Econometrics",data.tree$Preferred.Qualifications),1,0)
+data.tree$pref_ss <-ifelse(grepl("Social Sciences|Economics|Anthropology|Political Science|Communications|Psychology|
+                         History|English|Literature",data.tree$Preferred.Qualifications),1,0)
+data.tree$pref_design<-ifelse(grepl("Design|Art|Fashion",data.tree$Preferred.Qualifications),1,0)
+
+#Degrees
+data.tree$pref_bs <- ifelse(grepl("BS|BA|Bachelors|Bachelor's", data.tree$Preferred.Qualifications), 1, 0)
+data.tree$pref_ms <- ifelse(grepl("MS|MA|MST|Masters|Master's|MFA",data.tree$Preferred.Qualifications),1,0)
+data.tree$pref_mba <- ifelse(grepl("MBA",data.tree$Preferred.Qualifications),1,0)
+data.tree$pref_phd <-ifelse(grepl("PhD|Ph.D",data.tree$Preferred.Qualifications),1,0)
+data.tree$pref_jd <-ifelse(grepl("JD|J.D.",data.tree$Preferred.Qualifications),1,0)
+
+#Hard Skills
+data.tree$pref_coding <-ifelse(grepl("java|Java|JavaScript|python|Python|C\\+\\+|C|Objective-C|C/C\\+\\+|C#|Go|R|RStudio|MATLAB|NodeJS|NET|Ruby|PHP", data.tree$Preferred.Qualifications), 1, 0)
+data.tree$pref_data <-ifelse(grepl("R|RStudio|SQL|Spark SQL|Tableau|SPSS|SAS|querying|database", data.tree$Preferred.Qualifications), 1, 0)
+data.tree$pref_web <-ifelse(grepl("JavaScript|HTML|HTML5|CSS|Ruby|PHP", data.tree$Preferred.Qualifications), 1, 0)
+data.tree$pref_languages <-ifelse(grepl("Russian|Polish|Turkish|French|German|English|Chinese|Dutch|Swedish|Norwegian|Finnish|European|Mandarin|Cantonese|Arabic|Italian|Romanian|Korean", data.tree$Preferred.Qualifications), 1, 0)
+data.tree$pref_travel<-ifelse(grepl("travel", data.tree$Preferred.Qualifications), 1, 0)
+
+#Years of Experience Column Minimum Qualifications
+library(stringr)
+data.tree$YOE=as.numeric(str_match(data.tree$Minimum.Qualifications, "\\s*(\\d+)\\s*(?i)\\byear\\s*s:?")[,2])
+data.tree$YOE=ifelse(data.tree$YOE=="NA",0,data.tree$YOE)
+data.tree$YOE[is.na(data.tree$YOE)] <- 0
+data.tree$YOE=as.numeric(data.tree$YOE)
+
+#Drop Original Columns
+drops <- c("Responsibilities", "Title", "Minimum.Qualifications", "Preferred.Qualifications")
+data.tree <- data.tree[ , !(names(data.tree) %in% drops)]
+
+
+#Re-do Locations
+data.tree$Location=as.character(data.tree$Location)
+data.tree$Location <-ifelse(grepl("CA, |OR, |WA, ",data.tree$Location),"West Coast, United States", data.tree$Location)
+data.tree$Location <-ifelse(grepl("PA, |NY, |MA, |VA, |DC, ",data.tree$Location),"East Coast, United States", data.tree$Location)
+data.tree$Location <-ifelse(grepl("ID, |CO, |UT, ",data.tree$Location),"The Rockies, United States", data.tree$Location)
+data.tree$Location <-ifelse(grepl("MI, |OH, |IL, |MN, ",data.tree$Location),"The MidWest, United States", data.tree$Location)
+data.tree$Location <-ifelse(grepl("TX, |GA, ",data.tree$Location),"Southern United States", data.tree$Location)
+data.tree$Location <-ifelse(grepl(", Germany",data.tree$Location),"Germany", data.tree$Location)
+data.tree$Location <-ifelse(grepl(", Brazil",data.tree$Location),"Brazil", data.tree$Location)
+data.tree$Location <-ifelse(grepl(", India",data.tree$Location),"India", data.tree$Location)
+data.tree$Location <-ifelse(grepl(", Canada",data.tree$Location),"Canada", data.tree$Location)
+data.tree$Location <-ifelse(grepl(", China",data.tree$Location),"China", data.tree$Location)
+data.tree$Location <-ifelse(grepl(", Poland",data.tree$Location),"Poland", data.tree$Location)
+data.tree$Location <-ifelse(grepl(", Taiwan",data.tree$Location),"Taiwan", data.tree$Location)
+data.tree$Location <-ifelse(grepl(", Italy",data.tree$Location),"Italy", data.tree$Location)
+data.tree$Location <-ifelse(grepl(", Australia",data.tree$Location),"Australia", data.tree$Location)
+data.tree$Location <-ifelse(grepl(", Netherlands",data.tree$Location),"Netherlands", data.tree$Location)
+data.tree$Location=as.factor(data.tree$Location)
+
+#Random Forest
+library(randomForest)
+set.seed(1)
+nrow(data.tree)
+train = sample(1:1227,409)
+test = (-train)
+train_data=data.tree[train,]
+test_data=data.tree[test,]
+
+#m=sqrt(p)
+p=length(colnames(data.tree))
+m=round(sqrt(p))
+
+rforest.mod=randomForest(Category~., data=train_data, mtry=m, importance=TRUE)
+
+importance(rforest.mod)
+```
