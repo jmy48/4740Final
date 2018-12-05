@@ -18,9 +18,6 @@ data.tree["Category"] <- as.factor(data.tree[["Category"]])
 
 ##Minimum Qualifications
 
-#Intern vs Full Time
-data.tree$min_intern <-0
-
 #Major 
 data.tree$min_eng <-0
 data.tree$min_cs <- 0 
@@ -44,9 +41,6 @@ data.tree$min_languages<-0
 data.tree$min_travel<-0
 
 ##Preferred Qualifications
-
-#Intern vs Full Time
-data.tree$pref_intern <- 0
 
 #Major
 data.tree$pref_eng <-0
@@ -86,9 +80,6 @@ data.tree$pref_travel<-0
 
 ##Minimum qualifications columns 
 
-#Intern
-data.tree$min_intern<-ifelse(grepl("Intern", data.tree$Title), 1, 0)
-
 #Majors
 data.tree$min_eng <- ifelse(grepl("Engineering|Computer Science|Operations Research|Information Science", 
                            data.tree$Minimum.Qualifications), 1, 0)
@@ -118,9 +109,6 @@ data.tree$min_languages <-ifelse(grepl("Russian|Polish|Turkish|French|German|Eng
 data.tree$min_travel<-ifelse(grepl("travel", data.tree$Minimum.Qualifications), 1, 0)
 
 ## Preferred qualification columns
-
-#Intern
-data.tree$pref_intern<-ifelse(grepl("Intern", data.tree$Title), 1, 0)
 
 #Majors
 data.tree$pref_eng <- ifelse(grepl("Engineering|Computer Science|Operations Research|Information Science", 
